@@ -1,4 +1,3 @@
-
 # タイムゾーンを常に Asia/Tokyo に設定する (Linux のみ)
 ## タイムゾーンが UTC の環境ではログの日時が日本時間より9時間遅れてしまうため
 ## デフォルトを Asia/Tokyo に変更することで、万が一のタイムゾーン関連のバグを防ぐ防波堤としての意味合いもある
@@ -25,6 +24,7 @@ from aerich import Command
 from pathlib import Path
 from tortoise import Tortoise
 from uvicorn.supervisors.watchfilesreload import WatchFilesReload
+import signal
 
 from app.config import LoadConfig
 from app.constants import (
@@ -234,6 +234,11 @@ def main(
         RESTART_REQUIRED_LOCK_PATH.unlink()
         os.execv(sys.executable, [sys.executable] + sys.argv)
 
+def handle_sigterm(*args):
+    logging.info('SIGTERM received. Shutting down gracefully...')
+    server.should_exit = True
+
+signal.signal(signal.SIGTERM, handle_sigterm)
 
 if __name__ == '__main__':
     cli()

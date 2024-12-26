@@ -1,9 +1,9 @@
-
 import asyncio
 import atexit
 import mimetypes
 import tortoise.contrib.fastapi
 import tortoise.log
+import signal
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi import status
@@ -255,3 +255,8 @@ async def Shutdown():
 # shutdown イベントが発火しない場合も想定し、アプリケーションの終了時に Shutdown() が確実に呼ばれるように
 # atexit は同期関数しか実行できないので、asyncio.run() でくるむ
 atexit.register(asyncio.run, Shutdown())
+
+def handle_sigterm(*args):
+    asyncio.create_task(Shutdown())
+
+signal.signal(signal.SIGTERM, handle_sigterm)
